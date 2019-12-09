@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script> 
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/js/select2.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/mystyle.css') }}">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <title>My First Dashboard</title>
+    </head>
+    <body>
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link active" href="/">Влиятельность</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/activity">Активность</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/interactions">Взаимодействие</a>
+            </li>
+        </ul>
+        <div class="container">
+            <div class="row" style="pb-1">
+                <div class="col-lg-6">
+                    <div id="filter-container">
+                        <form method="GET"">
+                            <!-- <select id ='grade_selection'> -->
+                            <select class="form-control-sm" id="centrality_grade_selection">
+                                <option value="all" selected>Показать все грейды</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                            </select>
+                            <select class="form-control-sm" id='centrality_selection'>
+                                <option value='betweensess'>Сравнить по посредничеству</option>
+                                <option value='eigenvalue' selected>Сравнить по влиятельности</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div id="filter-container">
+                        <form method="GET"">      
+                            <select id='centrality_selection' class="form-control-sm" value="3" name='test'>
+                                <option value='betweensess'>Отсортировать по посредничеству</option>
+                                <option value='eigenvalue' selected>Отсортировать по влиятельности</option>
+                            </select>
+                        </form>
+                    </div>        
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6" id='test_test'>
+                    <div id="container_for_centralities">
+                        <script>
+                            var chart_cont = document.getElementById('container_for_centralities');
+
+                            var layout_for_centralities = {
+                            autosize: true
+                            };
+                            var data = {{centralities | safe}}
+                            Plotly.newPlot('container_for_centralities', data, layout_for_centralities);
+                        
+                            window.onresize = function() {
+                                Plotly.Plots.resize('test_test');
+                                console.log(document.getElementById('test_test').offsetWidth)
+                                };
+        
+                            chart_cont.on('plotly_click', function(e){
+                                console.log(e['points'][0]['hovertext']);
+                            });
+                        </script>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <!-- orem, ipsum dolor sit amet consectetur adipisicing elit. Laudantium alias aut, minus odio, voluptas rerum velit saepe nobis ut laboriosam dicta accusamus reprehenderit porro! Ut minima voluptatum accusantium maxime suscipit? -->
+                    <div id="centrality_table">
+                        <script>
+                        var data = {{c_table | safe}}
+                        Plotly.newPlot('centrality_table', data, layout_for_centralities);
+
+                        window.onresize = function() {
+                            Plotly.Plots.resize('centrality_table');
+                            console.log(document.getElementById('centrality_table').offsetWidth)
+                            };
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <div class="column-layout">
+        <script>
+            document.getElementById('centrality_selection').addEventListener('change', function(e) {
+                var centrality = document.getElementById('centrality_selection').value;
+                console.log(centrality)
+
+                xhr = new XMLHttpRequest();
+                xhr.open('GET',`/update_grade_centralities?centrality=${centrality}`, true);
+                xhr.onload = function(){
+                    Plotly.newPlot('container_for_centralities', JSON.parse(JSON.parse(this.responseText)[1]), {displayModeBar: false});
+                    Plotly.newPlot('centrality_table', JSON.parse(JSON.parse(this.responseText)[2]), {displayModeBar: false});
+                    var chart_cont = document.getElementById('container_for_centralities');
+                    chart_cont.on('plotly_click', function(e){
+                        console.log(e['points'][0]['hovertext']);
+                    });
+                    //console.log(this.responseText);
+                };
+                xhr.send();
+            });
+            document.getElementById('centrality_grade_selection').addEventListener('change', function() {
+                var grade = document.getElementById('centrality_grade_selection').value;
+                console.log(grade)
+
+                xhr = new XMLHttpRequest();
+                xhr.open('GET',`/update_grade_centralities?grade=${grade}`, true);
+                xhr.onload = function(){
+                    Plotly.newPlot('container_for_centralities', JSON.parse(JSON.parse(this.responseText)[1]), {displayModeBar: false});
+                    Plotly.newPlot('centrality_table', JSON.parse(JSON.parse(this.responseText)[2]), {displayModeBar: false});
+                    console.log(JSON.parse(JSON.parse(this.responseText)[1]))
+                    var chart_cont = document.getElementById('container_for_centralities');
+                    chart_cont.on('plotly_click', function(e){
+                        console.log(e['points'][0]['hovertext']);
+                    });
+                    //console.log(this.responseText);
+                };
+                xhr.send();
+            });
+        </script>
+
+
+
+        <!-- <script src="{{ url_for('static', filename='js/plots.js') }}"></script> -->
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </body>
+
+</html>

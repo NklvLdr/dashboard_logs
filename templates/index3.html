@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <title>My First Dashboard</title>
+        </head>
+        <body>
+            <div class="col-xs-3">
+                <label> Choose the plot type....</label><br>
+                <select class="form-control" id ='first_cat'>
+                    <option value="email674@rosatom.ru">email674@rosatom.ru</option>
+                    <option value="email121@rosatom-academy.ru">email121@rosatom-academy.ru</option>
+                    <option value="email60@rosatom-academy.ru">email60@rosatom-academy.ru</option>
+                </select>
+            </div>
+            <div id="column">
+                <div class="chart" id="bargraph">
+                    <script>
+                        var layout = {
+                        legend: {
+                            y: 0.5,
+                            yref: 'paper',
+                            font: {
+                            family: 'Arial, sans-serif',
+                            size: 20,
+                            color: 'grey',
+                            }
+                        },
+                        title:'Data Labels on the Plot',
+                        width: 600,
+                        height: 600
+                        };
+
+                        var data = {{p2p_activity | safe}}
+                        Plotly.newPlot('bargraph', data, layout);
+                    </script>
+                </div>
+
+                <div class="chart" id="timeline_month">
+                    <script>
+                        var layout = {
+                        legend: {
+                            y: 0.5,
+                            yref: 'paper',
+                            font: {
+                            family: 'Arial, sans-serif',
+                            size: 20,
+                            color: 'grey',
+                            }
+                        },
+                        title:'Data Labels on the Plot',
+                        width: 600,
+                        height: 600
+                        };
+
+                        var data = {{acitivity_by_month | safe}}
+                        Plotly.newPlot('timeline_month', data, layout);
+                    </script>
+                </div>
+
+                <div class="chart" id="timeline_week">
+                    <script>
+                        var layout = {
+                        legend: {
+                            y: 0.5,
+                            yref: 'paper',
+                            font: {
+                            family: 'Arial, sans-serif',
+                            size: 20,
+                            color: 'grey',
+                            }
+                        },
+                        title:'Data Labels on the Plot',
+                        width: 600,
+                        height: 600
+                        };
+
+                        var data = {{activity_by_week | safe}}
+                        Plotly.newPlot('timeline_week', data, layout);
+                    </script>
+                </div>
+
+                <div class="chart" id="timeline_day">
+                    <script>
+                        var layout = {
+                        legend: {
+                            y: 0.5,
+                            yref: 'paper',
+                            font: {
+                            family: 'Arial, sans-serif',
+                            size: 20,
+                            color: 'grey',
+                            }
+                        },
+                        title:'Data Labels on the Plot',
+                        width: 600,
+                        height: 600
+                        };
+
+                        var data = {{activity_by_day | safe}}
+                        Plotly.newPlot('timeline_day', data, layout);
+                    </script>
+                </div>
+
+            </div>
+        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>  
+        </body>
+
+</html>

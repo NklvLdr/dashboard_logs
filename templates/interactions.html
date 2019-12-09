@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script> 
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/js/select2.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/mystyle.css') }}">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/mystyle.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jquerydropdown.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/vanillaSelectBox.css') }}">
+
+        <title>My First Dashboard</title>
+    </head>
+    <body>
+        <!-- horizontal menu -->
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link active" href="/">Влиятельность</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/activity">Активность</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/interactions">Взаимодействие</a>
+            </li>
+        </ul>
+        <!-- main content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-0">
+                    <!-- filters -->
+                    <div id="submit_filter_by_grade_centrality">
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                    <div id="filter-container">
+                        <select id="filter_p2p_by_email" style="width: 300px" class="form-control-sm">
+                            <option value="">Выберите email</option>
+                        </select>
+                    </div>
+                    <div class="chart" id="p2p">
+                    </div>
+                    <script>
+                        var chart_cont = document.getElementById('p2p');
+                        var layout_for_p2p_plots = {
+                        autosize: true
+                        };
+
+                        var p2p_data = {{p2p_activity | safe}};
+                        Plotly.newPlot('p2p', p2p_data, layout_for_p2p_plots);
+
+                        window.onresize = function() {
+                            Plotly.Plots.resize('p2p');
+                            };
+                    </script>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4">
+                    <div id='email_filter'>
+                        <ul style="list-style-type: none">
+                            <li><select id='heatmap_grade', class='form-control-sm'></li>
+                                <li><option value="">выберите грейд</option></li>
+                                <li><option value="">4</option></li>
+                                <li><option value="">5</option></li>
+                                <li><option value="">6</option></li>
+                                <li><option value="">7</option></li>
+                                <li><option value="">8</option></li>
+                                <li><option value="">9</option></li>
+                                <li><option value="">10</option></li>
+                                <li><option value="">11</option></li>
+                            </select>
+                            <li><select id='heatmap_grade', class='form-control-sm'>
+                                <li><option value="">сортировать тепловую карту</option></li>
+                                <li><option value="">по влиятельности</option></li>
+                                <li><option value="">по посредничеству</option></li>
+                                <li><option value="">по грейду</option></li>
+                            </select>
+                            <li><select class="form-control-sm" id='emails_for_heatmap' multiple="multiple" style="width: 300px"></li>
+                            </select>
+                            <li><input type="submit" id="submit_update_heatmap" value="Отфильтровать"></li>
+                        </ul> 
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart" id="heatmap">
+                        <script>
+                            var chart_cont = document.getElementById('heatmap');
+                            var layout_for_heatmap = {
+                            autosize: true
+                            };
+
+                            var heatmap_data = {{heatmap_graph | safe}};
+                            Plotly.newPlot('heatmap', heatmap_data, layout_for_heatmap);
+
+                            window.onresize = function() {
+                                Plotly.Plots.resize('heatmap');
+                                };
+                        </script>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+
+        <script>
+            $('#filter_p2p_by_email').select2({
+                placeholder: "Выберите email",
+                allowClear: true
+            });
+            $('#emails_for_heatmap').select2({
+                placeholder: "Выберите email",
+                allowClear: true
+            });
+
+            window.onload = function() {
+                xhr = new XMLHttpRequest();
+                xhr.open('GET', '/heatmap/users', true);
+                xhr.onload = function(){
+                    var names = JSON.parse(xhr.responseText);
+                    names.forEach(function(each){
+                        var node = document.createElement("option");
+                        var textnode = document.createTextNode(each);
+                        node.appendChild(textnode);
+                        node.value = each;
+                        document.getElementById("filter_p2p_by_email").appendChild(node);
+                        //document.getElementById("emails_for_heatmap").appendChild(node);
+                    })
+                    names.forEach(function(each){
+                        var node = document.createElement("option");
+                        var textnode = document.createTextNode(each);
+                        node.appendChild(textnode);
+                        node.value = each;
+                        document.getElementById("emails_for_heatmap").appendChild(node);
+                    })
+                }
+                xhr.send();
+            }
+
+            $('#filter_p2p_by_email').on('select2:select', function(){
+                var selected = $("#filter_p2p_by_email").val()
+                xhr = new XMLHttpRequest();
+                xhr.open('GET',`/interactions/update?email=${selected}`, true);
+                xhr.onload = function(){
+                    Plotly.newPlot('p2p', JSON.parse(xhr.responseText));
+                }
+                xhr.send();
+            })
+
+            //heatmap filtering
+            document.getElementById('submit_update_heatmap').addEventListener('click', function(e){
+                e.preventDefault();
+                var selected = $("#emails_for_heatmap").val()
+                xhr = new XMLHttpRequest();
+                xhr.open('GET',`/heatmap/update?emails=${JSON.stringify(selected)}`, true);
+                xhr.onload = function(){
+                    Plotly.newPlot('heatmap', JSON.parse(xhr.responseText));
+                }
+                xhr.send();
+            });        
+        </script>
+        <!-- <script src="{{ url_for('static', filename='js/plots.js') }}"></script> -->
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </body>
+
+</html>
